@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="900" viewBox="0 0 1400 900">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#12263a"/>
+      <stop offset="100%" stop-color="#2d4a6f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="900" fill="url(#g)"/>
+  <circle cx="1180" cy="160" r="220" fill="#9ad0ff" fill-opacity="0.18"/>
+  <circle cx="180" cy="760" r="280" fill="#9ad0ff" fill-opacity="0.12"/>
+  <rect x="80" y="700" width="160" height="6" fill="#9ad0ff"/>
+  <text x="80" y="780" fill="#ffffff" font-family="Georgia, serif" font-size="54">Interview</text>
+  <text x="80" y="830" fill="#ffffff" fill-opacity="0.65" font-family="Helvetica, Arial, sans-serif" font-size="24">PR News</text>
+</svg>

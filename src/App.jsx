@@ -1,11 +1,33 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import MainLayout from './layouts/MainLayout'
+import Home from './pages/Home'
+import Articles from './pages/Articles'
+import ArticleDetail from './pages/ArticleDetail'
+import Blog from './pages/Blog'
+import BlogDetail from './pages/BlogDetail'
+import Services from './pages/Services'
+import ServiceDetail from './pages/ServiceDetail'
+import Contact from './pages/Contact'
+import Privacy from './pages/Privacy'
+import NotFound from './pages/NotFound'
+
 export default function App() {
   return (
-    <main className="min-h-screen bg-slate-950 text-white flex items-center justify-center">
-      <div className="text-center space-y-3">
-        <p className="text-sm uppercase tracking-[0.2em] text-slate-400">PR1</p>
-        <h1 className="text-4xl font-semibold tracking-tight">PR1 Website</h1>
-        <p className="text-slate-400">React + Vite + Tailwind is ready.</p>
-      </div>
-    </main>
+    <BrowserRouter>
+      <Routes>
+        <Route element={<MainLayout />}>
+          <Route index element={<Home />} />
+          <Route path="businesses" element={<Articles />} />
+          <Route path="businesses/:slug" element={<ArticleDetail />} />
+          <Route path="blog" element={<Blog />} />
+          <Route path="blog/:slug" element={<BlogDetail />} />
+          <Route path="services" element={<Services />} />
+          <Route path="services/:slug" element={<ServiceDetail />} />
+          <Route path="contact" element={<Contact />} />
+          <Route path="privacy" element={<Privacy />} />
+          <Route path="*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   )
 }
