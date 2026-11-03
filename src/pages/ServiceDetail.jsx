@@ -33,7 +33,7 @@ export default function ServiceDetail() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20 text-center text-[var(--color-ink)]/60">
+      <div className="mx-auto max-w-6xl px-4 py-20 text-center text-[var(--color-ink)]/60">
         <p>Loading…</p>
       </div>
     )
@@ -41,7 +41,7 @@ export default function ServiceDetail() {
 
   if (!service) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20 text-center">
+      <div className="mx-auto max-w-6xl px-4 py-20 text-center">
         <p>Service not found.</p>
         <Link to="/services" className="mt-4 inline-block underline">All services</Link>
       </div>
@@ -54,17 +54,23 @@ export default function ServiceDetail() {
     <>
       <Seo title={service.title} description={service.shortDescription} />
       <article className="bg-[var(--color-mist)]">
-        {image && (
-          <div className="relative h-[38vh] min-h-[220px] w-full overflow-hidden md:h-[46vh]">
-            <img src={image} alt="" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-ink)]/65 to-transparent" />
+        <header className="relative min-h-[38vh] overflow-hidden md:min-h-[46vh]">
+          {image ? (
+            <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-[var(--color-ink)]" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-ink)] via-[var(--color-ink)]/55 to-[var(--color-ink)]/25" />
+          <div className="relative mx-auto flex min-h-[38vh] max-w-6xl flex-col justify-end px-4 py-14 md:min-h-[46vh] md:px-8 md:py-20">
+            <p className="text-xs uppercase tracking-[0.2em] text-white/70">Service</p>
+            <h1 className="mt-3 font-display text-4xl text-white md:text-5xl">{service.title}</h1>
+            {service.shortDescription && (
+              <p className="mt-5 max-w-2xl text-lg text-white/80">{service.shortDescription}</p>
+            )}
           </div>
-        )}
-        <section className="mx-auto max-w-3xl px-4 py-14 md:px-8 md:py-20">
-          <p className="text-xs uppercase tracking-[0.2em] text-[var(--color-ink)]/50">Service</p>
-          <h1 className="mt-3 font-display text-4xl md:text-5xl">{service.title}</h1>
-          <p className="mt-5 text-lg text-[var(--color-ink)]/75">{service.shortDescription}</p>
-          <RichText html={service.content} className="mt-10" />
+        </header>
+        <section className="mx-auto max-w-6xl px-4 py-14 md:px-8 md:py-20">
+          <RichText html={service.content} />
           <Link to="/contact" className="btn btn-ink btn-block-sm mt-10">
             Enquire about this service
           </Link>

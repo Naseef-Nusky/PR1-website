@@ -15,6 +15,15 @@ export const siteConfig = {
     facebook: 'https://www.facebook.com/',
     instagram: 'https://www.instagram.com/',
   },
+  blog: {
+    navLabel: 'News',
+    sectionLabel: 'PR News',
+    title: 'Blog & news',
+    homeTitle: 'Blog & business news',
+    description: 'Business news, interviews, insights and sponsored content from PR.',
+    backLabel: 'Back to PR News',
+    browseLabel: 'All PR News posts',
+  },
   pillars: [
     {
       name: 'PR Business Directory',

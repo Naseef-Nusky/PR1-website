@@ -33,7 +33,7 @@ export default function ArticleDetail() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20 text-center text-[var(--color-ink)]/60">
+      <div className="mx-auto max-w-6xl px-4 py-20 text-center text-[var(--color-ink)]/60">
         <p>Loading…</p>
       </div>
     )
@@ -41,7 +41,7 @@ export default function ArticleDetail() {
 
   if (!article) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20 text-center">
+      <div className="mx-auto max-w-6xl px-4 py-20 text-center">
         <p>Article not found.</p>
         <Link to="/businesses" className="mt-4 inline-block underline">Back to businesses</Link>
       </div>
@@ -49,26 +49,28 @@ export default function ArticleDetail() {
   }
 
   const image = article.coverUrl || article.logoUrl || null
+  const label = `${article.industry?.name || 'Business feature'}${article.location ? ` · ${article.location}` : ''}`
 
   return (
     <>
       <Seo title={article.seoTitle || article.title} description={article.seoDescription || article.excerpt} />
       <article className="bg-[var(--color-mist)]">
-        {image && (
-          <div className="relative h-[42vh] min-h-[240px] w-full overflow-hidden md:h-[52vh]">
-            <img src={image} alt="" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-ink)]/70 to-transparent" />
+        <header className="relative min-h-[42vh] overflow-hidden md:min-h-[52vh]">
+          {image ? (
+            <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-[var(--color-ink)]" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-ink)] via-[var(--color-ink)]/55 to-[var(--color-ink)]/25" />
+          <div className="relative mx-auto flex min-h-[42vh] max-w-6xl flex-col justify-end px-4 py-14 md:min-h-[52vh] md:px-8 md:py-20">
+            <p className="text-xs uppercase tracking-[0.2em] text-white/70">{label}</p>
+            <h1 className="mt-4 font-display text-4xl leading-tight text-white md:text-5xl">{article.title}</h1>
+            {article.excerpt && <p className="mt-5 max-w-2xl text-lg text-white/80">{article.excerpt}</p>}
           </div>
-        )}
-        <div className="mx-auto max-w-3xl px-4 py-14 md:px-8 md:py-20">
-          <p className="text-xs uppercase tracking-[0.2em] text-[var(--color-ink)]/50">
-            {article.industry?.name || 'Business feature'}
-            {article.location ? ` · ${article.location}` : ''}
-          </p>
-          <h1 className="mt-4 font-display text-4xl leading-tight md:text-5xl">{article.title}</h1>
-          <p className="mt-5 text-lg text-[var(--color-ink)]/75">{article.excerpt}</p>
+        </header>
 
-          <div className="mt-10 border border-[var(--color-ink)]/10 bg-white/70 p-6">
+        <div className="mx-auto max-w-6xl px-4 py-14 md:px-8 md:py-20">
+          <div className="border border-[var(--color-ink)]/10 bg-white/70 p-6">
             <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-ink)]/50">Company</p>
             <h2 className="mt-2 font-display text-2xl">{article.companyName}</h2>
             <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink)]/70">{article.companyDescription}</p>

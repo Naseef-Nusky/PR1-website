@@ -16,7 +16,9 @@ const client = sanityConfigured
       projectId,
       dataset,
       apiVersion,
-      useCdn: true,
+      // false = fresh published content after Studio Publish (CDN can lag)
+      useCdn: false,
+      perspective: 'published',
     })
   : null
 
@@ -67,20 +69,31 @@ export function blocksToHtml(blocks) {
     .join('')
 }
 
+function cleanSlug(value) {
+  const raw = value?.current ?? value
+  return typeof raw === 'string' ? raw.trim() : raw
+}
+
+function slugLookupVariants(slug) {
+  const clean = String(slug || '').trim()
+  return [...new Set([clean, `${clean} `, ` ${clean}`, ` ${clean} `])]
+}
+
 function normalizeArticle(doc) {
   if (!doc) return null
   const logoUrl = urlFor(doc.logo)
   const firstPhoto = Array.isArray(doc.photographs) ? urlFor(doc.photographs[0]) : null
   return {
     ...doc,
-    slug: doc.slug?.current || doc.slug,
+    slug: cleanSlug(doc.slug),
+    title: typeof doc.title === 'string' ? doc.title.trim() : doc.title,
     content: blocksToHtml(doc.content),
     background: blocksToHtml(doc.background),
     productsServices: blocksToHtml(doc.productsServices),
     logoUrl,
     coverUrl: firstPhoto || logoUrl || doc.coverUrl || null,
     industry: doc.industry
-      ? { name: doc.industry.name, slug: doc.industry.slug?.current || doc.industry.slug }
+      ? { name: doc.industry.name, slug: cleanSlug(doc.industry.slug) }
       : null,
   }
 }
@@ -89,24 +102,26 @@ function normalizePost(doc) {
   if (!doc) return null
   return {
     ...doc,
-    slug: doc.slug?.current || doc.slug,
+    slug: cleanSlug(doc.slug),
+    title: typeof doc.title === 'string' ? doc.title.trim() : doc.title,
     content: blocksToHtml(doc.content),
     coverUrl: urlFor(doc.coverImage),
     category: doc.category
-      ? { name: doc.category.name, slug: doc.category.slug?.current || doc.category.slug }
+      ? { name: doc.category.name, slug: cleanSlug(doc.category.slug) }
       : null,
   }
 }
 
 function normalizeService(doc) {
   if (!doc) return null
-  const iconUrl = urlFor(doc.icon)
+  const coverUrl = urlFor(doc.coverImage) || urlFor(doc.icon)
   return {
     ...doc,
-    slug: doc.slug?.current || doc.slug,
+    slug: cleanSlug(doc.slug),
+    title: typeof doc.title === 'string' ? doc.title.trim() : doc.title,
     content: blocksToHtml(doc.content),
-    iconUrl,
-    imageUrl: iconUrl || doc.imageUrl || null,
+    iconUrl: coverUrl,
+    imageUrl: coverUrl || doc.imageUrl || null,
   }
 }
 
@@ -124,7 +139,7 @@ function normalizePage(doc) {
   if (!doc) return null
   return {
     ...doc,
-    slug: doc.slug?.current || doc.slug,
+    slug: cleanSlug(doc.slug),
     content: blocksToHtml(doc.content),
   }
 }
@@ -155,7 +170,8 @@ export async function fetchBusinessArticles({ featured } = {}) {
     `*[_type == "businessArticle" && site == $site${featuredFilter}] | order(_updatedAt desc){
       ...,
       industry->{name, slug},
-      logo
+      logo,
+      photographs
     }`,
   )
   return (docs || []).map(normalizeArticle)
@@ -163,13 +179,13 @@ export async function fetchBusinessArticles({ featured } = {}) {
 
 export async function fetchBusinessArticle(slug) {
   const doc = await fetchDocs(
-    `*[_type == "businessArticle" && site == $site && slug.current == $slug][0]{
+    `*[_type == "businessArticle" && site == $site && slug.current in $variants][0]{
       ...,
       industry->{name, slug},
       logo,
       photographs
     }`,
-    { slug },
+    { variants: slugLookupVariants(slug) },
   )
   return normalizeArticle(doc)
 }
@@ -188,35 +204,35 @@ export async function fetchBlogPosts({ featured } = {}) {
 
 export async function fetchBlogPost(slug) {
   const doc = await fetchDocs(
-    `*[_type == "blogPost" && site == $site && slug.current == $slug][0]{
+    `*[_type == "blogPost" && site == $site && slug.current in $variants][0]{
       ...,
       category->{name, slug},
       coverImage
     }`,
-    { slug },
+    { variants: slugLookupVariants(slug) },
   )
   return normalizePost(doc)
 }
 
 export async function fetchServices() {
   const docs = await fetchDocs(
-    `*[_type == "service" && site == $site] | order(order asc){..., icon}`,
+    `*[_type == "service" && site == $site] | order(order asc){..., coverImage, icon}`,
   )
   return (docs || []).map(normalizeService)
 }
 
 export async function fetchService(slug) {
   const doc = await fetchDocs(
-    `*[_type == "service" && site == $site && slug.current == $slug][0]{..., icon}`,
-    { slug },
+    `*[_type == "service" && site == $site && slug.current in $variants][0]{..., coverImage, icon}`,
+    { variants: slugLookupVariants(slug) },
   )
   return normalizeService(doc)
 }
 
 export async function fetchPage(slug) {
   const doc = await fetchDocs(
-    `*[_type == "page" && site == $site && slug.current == $slug][0]`,
-    { slug },
+    `*[_type == "page" && site == $site && slug.current in $variants][0]`,
+    { variants: slugLookupVariants(slug) },
   )
   return normalizePage(doc)
 }
@@ -237,11 +253,37 @@ export async function withFallback(loader, fallback) {
   try {
     if (!sanityConfigured) return fallback
     const data = await loader()
-    if (data == null || (Array.isArray(data) && data.length === 0)) return fallback
-    // Ignore empty CMS docs so temporary local content still shows
-    if (typeof data === 'object' && !data.title && !data.slug) return fallback
+    // Lists: keep default/demo items first; append Sanity items under them.
+    // Same slug → Sanity version replaces the default in place.
+    if (Array.isArray(data)) {
+      if (!Array.isArray(fallback) || fallback.length === 0) return data
+      const bySlug = new Map()
+      for (const item of fallback) {
+        if (item?.slug) bySlug.set(item.slug, item)
+      }
+      for (const item of data) {
+        if (item?.slug) bySlug.set(item.slug, item)
+      }
+      const defaults = fallback.map((item) => bySlug.get(item.slug)).filter(Boolean)
+      const fallbackSlugs = new Set(fallback.map((item) => item?.slug).filter(Boolean))
+      // Sanity uploads first (so new CMS content is obvious), then remaining demos
+      const sanityOnly = data.filter((item) => item?.slug && !fallbackSlugs.has(item.slug))
+      return [...sanityOnly, ...defaults]
+    }
+    if (data == null) return fallback
+    if (typeof data === 'object' && !data.title && !data.slug && !data.heroTitle) return fallback
     return data
-  } catch {
+  } catch (err) {
+    console.warn('[sanity]', err)
     return fallback
   }
+}
+
+/** Sanity-only items first, then up to N demo items (CMS uploads stay visible on home). */
+export function defaultsPlusCms(items, fallbackItems, defaultLimit) {
+  const list = Array.isArray(items) ? items : []
+  const fallbackSlugs = new Set((fallbackItems || []).map((x) => x?.slug).filter(Boolean))
+  const defaults = list.filter((x) => fallbackSlugs.has(x.slug)).slice(0, defaultLimit)
+  const sanityOnly = list.filter((x) => x?.slug && !fallbackSlugs.has(x.slug))
+  return [...sanityOnly, ...defaults]
 }

@@ -12,6 +12,7 @@ import {
   fetchBlogPosts,
   fetchServices,
   withFallback,
+  defaultsPlusCms,
 } from '../api/sanity'
 import {
   fallbackHomepage,
@@ -28,16 +29,18 @@ export default function Home() {
 
   useEffect(() => {
     ;(async () => {
-      const [h, a, p, s] = await Promise.all([
+      const [h, articles, posts, services] = await Promise.all([
         withFallback(fetchHomepage, fallbackHomepage),
-        withFallback(() => fetchBusinessArticles({ featured: true }), fallbackArticles.filter((x) => x.featured)),
-        withFallback(() => fetchBlogPosts({ featured: true }), fallbackPosts.slice(0, 3)),
-        withFallback(fetchServices, fallbackServices.slice(0, 4)),
+        withFallback(fetchBusinessArticles, fallbackArticles),
+        withFallback(fetchBlogPosts, fallbackPosts),
+        withFallback(fetchServices, fallbackServices),
       ])
-      setHome({ ...fallbackHomepage, ...h })
-      setArticles(Array.isArray(a) && a.length ? a : fallbackArticles.filter((x) => x.featured))
-      setPosts(Array.isArray(p) && p.length ? p.slice(0, 3) : fallbackPosts.slice(0, 3))
-      setServices(Array.isArray(s) && s.length ? s.slice(0, 4) : fallbackServices.slice(0, 4))
+
+      // Defaults first; Sanity-only items always kept (not cut off by slice)
+      setHome({ ...fallbackHomepage, ...(h && typeof h === 'object' ? h : {}) })
+      setArticles(defaultsPlusCms(articles, fallbackArticles, 6))
+      setPosts(defaultsPlusCms(posts, fallbackPosts, 3))
+      setServices(defaultsPlusCms(services, fallbackServices, 4))
     })()
   }, [])
 
@@ -45,7 +48,7 @@ export default function Home() {
     <>
       <Seo title="Home" description={home.heroSubtitle || siteConfig.description} />
 
-      {/* Full-bleed hero — brand + headline + line + CTAs over image */}
+      {/* Full-bleed hero: brand + headline + line + CTAs over image */}
       <section className="relative min-h-[100svh] overflow-hidden text-white">
         <div
           className="absolute inset-0 img-cover kenburns"
@@ -141,8 +144,8 @@ export default function Home() {
       <section className="bg-[var(--color-mist)]">
         <div className="mx-auto max-w-6xl px-4 py-14 sm:py-20 md:px-8 md:py-28">
           <div className="mb-8 sm:mb-12">
-            <p className="text-xs uppercase tracking-[0.22em] text-[var(--color-ink)]/50">PR News</p>
-            <h2 className="mt-3 font-display text-3xl sm:text-4xl md:text-5xl">Blog & business news</h2>
+            <p className="text-xs uppercase tracking-[0.22em] text-[var(--color-ink)]/50">{siteConfig.blog.sectionLabel}</p>
+            <h2 className="mt-3 font-display text-3xl sm:text-4xl md:text-5xl">{siteConfig.blog.homeTitle}</h2>
           </div>
           <div className="grid gap-5 sm:gap-6 md:grid-cols-3">
             {posts.map((post) => (
@@ -175,7 +178,7 @@ export default function Home() {
             ))}
           </div>
           <Link to="/blog" className="mt-10 inline-block text-sm font-semibold underline underline-offset-4">
-            Browse all posts
+            {siteConfig.blog.browseLabel}
           </Link>
         </div>
       </section>

@@ -54,6 +54,15 @@ body {
   list-style: disc;
 }
 
+.prose-aether img {
+  display: block;
+  width: 100%;
+  max-height: 28rem;
+  object-fit: cover;
+  margin: 1.75rem 0;
+  border-radius: 0.75rem;
+}
+
 @keyframes fade-up {
   from {
     opacity: 0;

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import Seo from '../components/Seo'
 import RichText from '../components/RichText'
+import { siteConfig } from '../config/site'
 import { fetchBlogPost, withFallback } from '../api/sanity'
 import { fallbackPosts } from '../data/fallback'
 
@@ -33,7 +34,7 @@ export default function BlogDetail() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20 text-center text-[var(--color-ink)]/60">
+      <div className="mx-auto max-w-6xl px-4 py-20 text-center text-[var(--color-ink)]/60">
         <p>Loading…</p>
       </div>
     )
@@ -41,34 +42,37 @@ export default function BlogDetail() {
 
   if (!post) {
     return (
-      <div className="mx-auto max-w-3xl px-4 py-20 text-center">
+      <div className="mx-auto max-w-6xl px-4 py-20 text-center">
         <p>Post not found.</p>
-        <Link to="/blog" className="mt-4 inline-block underline">Back to blog</Link>
+        <Link to="/blog" className="mt-4 inline-block underline">{siteConfig.blog.backLabel}</Link>
       </div>
     )
   }
 
   const image = post.coverUrl || post.coverImageUrl || null
+  const label = post.category?.name || post.postType?.replace(/-/g, ' ') || siteConfig.blog.sectionLabel
 
   return (
     <>
       <Seo title={post.seoTitle || post.title} description={post.seoDescription || post.excerpt} />
       <article className="bg-[var(--color-mist)]">
-        {image && (
-          <div className="relative h-[42vh] min-h-[260px] w-full overflow-hidden md:h-[52vh]">
-            <img src={image} alt="" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-ink)]/70 to-transparent" />
+        <header className="relative min-h-[42vh] overflow-hidden md:min-h-[52vh]">
+          {image ? (
+            <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <div className="absolute inset-0 bg-[var(--color-ink)]" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[var(--color-ink)] via-[var(--color-ink)]/55 to-[var(--color-ink)]/25" />
+          <div className="relative mx-auto flex min-h-[42vh] max-w-6xl flex-col justify-end px-4 py-14 md:min-h-[52vh] md:px-8 md:py-20">
+            <p className="text-xs uppercase tracking-[0.2em] text-white/70">{label}</p>
+            <h1 className="mt-4 font-display text-4xl leading-tight text-white md:text-5xl">{post.title}</h1>
+            {post.excerpt && <p className="mt-5 max-w-2xl text-lg text-white/80">{post.excerpt}</p>}
           </div>
-        )}
-        <div className="mx-auto max-w-3xl px-4 py-14 md:px-8 md:py-20">
-          <p className="text-xs uppercase tracking-[0.2em] text-[var(--color-ink)]/50">
-            {post.category?.name || post.postType?.replace(/-/g, ' ') || 'Article'}
-          </p>
-          <h1 className="mt-4 font-display text-4xl leading-tight md:text-5xl">{post.title}</h1>
-          <p className="mt-5 text-lg text-[var(--color-ink)]/75">{post.excerpt}</p>
-          <RichText html={post.content} className="mt-10" />
+        </header>
+        <div className="mx-auto max-w-6xl px-4 py-14 md:px-8 md:py-20">
+          <RichText html={post.content} />
           <Link to="/blog" className="mt-12 inline-block text-sm font-semibold underline underline-offset-4">
-            All posts
+            {siteConfig.blog.browseLabel}
           </Link>
         </div>
       </article>

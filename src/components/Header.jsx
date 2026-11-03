@@ -4,7 +4,7 @@ import { siteConfig } from '../config/site'
 
 const links = [
   { to: '/businesses', label: 'Businesses' },
-  { to: '/blog', label: 'News' },
+  { to: '/blog', label: siteConfig.blog.navLabel },
   { to: '/services', label: 'Services' },
   { to: '/contact', label: 'Enquire' },
 ]

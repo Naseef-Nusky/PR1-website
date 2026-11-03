@@ -23,7 +23,7 @@ export default function Footer() {
           <p className="text-xs uppercase tracking-[0.2em] text-[var(--color-accent)]">Explore</p>
           <ul className="mt-4 space-y-2 text-sm text-white/80">
             <li><Link to="/businesses" className="hover:text-white">Business features</Link></li>
-            <li><Link to="/blog" className="hover:text-white">Blog & news</Link></li>
+            <li><Link to="/blog" className="hover:text-white">{siteConfig.blog.navLabel}</Link></li>
             <li><Link to="/services" className="hover:text-white">PR services</Link></li>
             <li><Link to="/contact" className="hover:text-white">Promotion enquiry</Link></li>
             <li><Link to="/privacy" className="hover:text-white">Privacy</Link></li>
